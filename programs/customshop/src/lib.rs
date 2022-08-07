@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{TokenAccount, Token, Mint, Burn, CloseAccount};
-//declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
-declare_id!("7GAzi1mmd9CT3kgV8vL1RbvQJyTNYRjYfuJ7rV42vVoi");
+use anchor_spl::token::{TokenAccount, Token, Mint, Burn};
+declare_id!("5hUjjLKqi5jEMFVgUkz21RwGd6YfQD7uNDHX3GQKcEo6");
 
 #[program]
 pub mod customshop {
@@ -10,23 +9,21 @@ pub mod customshop {
     pub fn create_marker(ctx: Context<CreateMarker>, domain: String) -> Result<()> {
         let marker = &mut ctx.accounts.marker;
         marker.authority = *ctx.accounts.authority.key;
-        marker.owner = *ctx.accounts.owner.key;
         marker.domain = domain;
         marker.mint = ctx.accounts.mint.to_account_info().key();
         Ok(())
     }
 
-    /// when mints are traded, this should be called
-    pub fn update_owner(ctx: Context<UpdateOwner>, domain: String) -> Result<()> {
-        let marker = &mut ctx.accounts.marker;
-        msg!("Update owner: {}", *ctx.accounts.owner.key);
-        marker.owner = *ctx.accounts.owner.key;
-        Ok(())
-    }
+    // /// when mints are traded, this should be called
+    // pub fn update_owner(ctx: Context<UpdateOwner>, domain: String) -> Result<()> {
+    //     let marker = &mut ctx.accounts.marker;
+    //     msg!("Update owner: {}", *ctx.accounts.owner.key);
+    //     marker.owner = *ctx.accounts.owner.key;
+    //     Ok(())
+    // }
 
     /// this should be called by the current owner to burn both mint and marker
-    pub fn burn_marker_and_mint<'info>(ctx: Context<'_, '_, '_, 'info, BurnMarkerAndMint<'info>>, domain: String) -> Result<()> {
-        let marker = &mut ctx.accounts.marker;
+    pub fn burn_marker_and_mint<'info>(ctx: Context<'_, '_, '_, 'info, BurnMarkerAndMint<'info>>) -> Result<()> {
         let token_account = &mut ctx.accounts.token_account;
         msg!("burning token");
         let cpi_accounts_burnmint = Burn {
@@ -61,7 +58,7 @@ pub mod customshop {
 
       /// when mints are replaced (when old has been burned), this can
       /// be called by anybody
-      pub fn burn_marker_only(ctx: Context<BurnMarker>) -> Result<()> {
+      pub fn burn_marker_only(_ctx: Context<BurnMarker>) -> Result<()> {
         // let marker = &mut ctx.accounts.marker;
         msg!("burning token");
 
@@ -92,8 +89,6 @@ pub mod customshop {
 pub struct Marker {
     /// 32 
     authority: Pubkey, 
-    /// 32
-    owner: Pubkey, 
     /// 36 = 32 + 4  -> (32 IS LIMITED BY SEED LENGTH, 4 GIVES THE LENGTH OF THE STRING)
     domain: String, 
     /// 32
@@ -131,32 +126,32 @@ pub struct CreateMarker<'info> {
 
 
 
-// validation struct for create marker
-#[derive(Accounts)]
-#[instruction(domain: String)]
-pub struct UpdateOwner<'info> {
-    #[account(mut)]
-    owner: Signer<'info>,
+// // validation struct for create marker
+// #[derive(Accounts)]
+// #[instruction(domain: String)]
+// pub struct UpdateOwner<'info> {
+//     #[account(mut)]
+//     owner: Signer<'info>,
 
-    authority: Signer<'info>,
+//     authority: Signer<'info>,
 
-    #[account(
-        mut, 
-        has_one = authority,
-        seeds = [
-        b"marker", 
-        domain.as_bytes()
-        ], bump)]
-    marker: Account<'info, Marker>,
+//     #[account(
+//         mut, 
+//         has_one = authority,
+//         seeds = [
+//         b"marker", 
+//         domain.as_bytes()
+//         ], bump)]
+//     marker: Account<'info, Marker>,
 
-    #[account(
-        mut, 
-        constraint = token_account.owner == owner.key(),
-        constraint = token_account.mint == marker.mint,
-        constraint = token_account.amount > 0
-       )]
-    token_account: Account<'info, TokenAccount>,
-}
+//     #[account(
+//         mut, 
+//         constraint = token_account.owner == owner.key(),
+//         constraint = token_account.mint == marker.mint,
+//         constraint = token_account.amount > 0
+//        )]
+//     token_account: Account<'info, TokenAccount>,
+// }
 
 // validation struct for burning when mint exists - can be called by owner only
 #[derive(Accounts)]
@@ -172,7 +167,7 @@ pub struct BurnMarkerAndMint<'info> {
 
     #[account(
         mut, 
-        has_one = owner,
+        has_one = authority,
         seeds = [
             b"marker", 
             domain.as_bytes()

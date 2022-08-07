@@ -250,13 +250,6 @@ describe("Customshop", async () => {
             ).authority.toBase58()
           ).to.equal(provider.wallet.publicKey.toBase58());
         });
-        it("marker should have the correct minter", async () => {
-          expect(
-            (
-              await program.account.marker.fetch(domainAndPDA.markerPDA)
-            ).owner.toBase58()
-          ).to.equal(originalMinter.publicKey.toBase58());
-        });
         it("marker should have the correct domain", async () => {
           expect(
             (await program.account.marker.fetch(domainAndPDA.markerPDA)).domain
@@ -298,43 +291,43 @@ describe("Customshop", async () => {
               await sleep(500);
             })
           );
-          it("Claiming the marker by new owner should succeed", async () => {
-            await program.methods
-              .updateOwner(domainAndPDA.testDomain)
-              .accounts({
-                owner: newOwner.publicKey,
-                authority: provider.wallet.publicKey,
-                marker: domainAndPDA.markerPDA,
-                tokenAccount: newAta,
-              })
-              .signers([newOwner])
-              .rpc();
-            await sleep(500);
-          });
-          it("Owner should be updated", async () => {
-            /// ensure that the linked wallet has switched over to the new owner
-            expect(
-              (
-                await program.account.marker.fetch(domainAndPDA.markerPDA)
-              ).owner.toBase58()
-            ).to.equal(newOwner.publicKey.toBase58());
-          });
+          // // it("Claiming the marker by new owner should succeed", async () => {
+          // //   await program.methods
+          // //     .updateOwner(domainAndPDA.testDomain)
+          // //     .accounts({
+          // //       owner: newOwner.publicKey,
+          // //       authority: provider.wallet.publicKey,
+          // //       marker: domainAndPDA.markerPDA,
+          // //       tokenAccount: newAta,
+          // //     })
+          // //     .signers([newOwner])
+          // //     .rpc();
+          // //   await sleep(500);
+          // // });
+          // it("Owner should be updated", async () => {
+          //   /// ensure that the linked wallet has switched over to the new owner
+          //   expect(
+          //     (
+          //       await program.account.marker.fetch(domainAndPDA.markerPDA)
+          //     ).owner.toBase58()
+          //   ).to.equal(newOwner.publicKey.toBase58());
+          // });
 
-          it("Authority should be unchanged", async () => {
-            expect(
-              (
-                await program.account.marker.fetch(domainAndPDA.markerPDA)
-              ).authority.toBase58()
-            ).to.equal(provider.wallet.publicKey.toBase58());
-          });
+          // it("Authority should be unchanged", async () => {
+          //   expect(
+          //     (
+          //       await program.account.marker.fetch(domainAndPDA.markerPDA)
+          //     ).authority.toBase58()
+          //   ).to.equal(provider.wallet.publicKey.toBase58());
+          // });
 
-          it("Domain should be unchanged", async () => {
-            // /// ensure domain is unchanged
-            expect(
-              (await program.account.marker.fetch(domainAndPDA.markerPDA))
-                .domain
-            ).to.equal(domainAndPDA.testDomain);
-          });
+          // it("Domain should be unchanged", async () => {
+          //   // /// ensure domain is unchanged
+          //   expect(
+          //     (await program.account.marker.fetch(domainAndPDA.markerPDA))
+          //       .domain
+          //   ).to.equal(domainAndPDA.testDomain);
+          // });
 
           it("Old owner should not be able to burn the marker", async () => {
             // /// ensure domain is unchanged
@@ -352,7 +345,7 @@ describe("Customshop", async () => {
                   reject(new Error(error))
                 });
               })
-            ).to.be.rejectedWith(Error, "AnchorError caused by account: marker. Error Code: ConstraintHasOne. Error Number: 2001. Error Message: A has one constraint was violated");
+            ).to.be.rejectedWith(Error, "AnchorError caused by account: token_account. Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated");
           });
           it("After unsuccessful attempt to burn, mint supply should be 1 ", async () => {
             const mintInfo = await getMint(
