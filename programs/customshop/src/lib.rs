@@ -14,16 +14,8 @@ pub mod customshop {
         Ok(())
     }
 
-    // /// when mints are traded, this should be called
-    // pub fn update_owner(ctx: Context<UpdateOwner>, domain: String) -> Result<()> {
-    //     let marker = &mut ctx.accounts.marker;
-    //     msg!("Update owner: {}", *ctx.accounts.owner.key);
-    //     marker.owner = *ctx.accounts.owner.key;
-    //     Ok(())
-    // }
-
     /// this should be called by the current owner to burn both mint and marker
-    pub fn burn_marker_and_mint<'info>(ctx: Context<'_, '_, '_, 'info, BurnMarkerAndMint<'info>>) -> Result<()> {
+    pub fn burn_marker_and_mint<'info>(ctx: Context<'_, '_, '_, 'info, BurnMarkerAndMint<'info>>, domain: String) -> Result<()> {
         let token_account = &mut ctx.accounts.token_account;
         msg!("burning token");
         let cpi_accounts_burnmint = Burn {
@@ -38,21 +30,6 @@ pub mod customshop {
 
         anchor_spl::token::burn(cpi_ctx_burn_mint, 1);
 
-
-
-        // let cpi_accounts_closeaccount = CloseAccount {
-        //     account: marker.to_account_info(),
-        //     destination: ctx.accounts.authority.to_account_info(), /// if called by owner, owner gets the proceeds
-        //     authority: ctx.accounts.authority.to_account_info(),
-        // };
-
-
-        // let cpi_program2 = ctx.accounts.token_program.to_account_info();
-        
-        // let cpi_ctx_close_account = CpiContext::new(cpi_program2, cpi_accounts_closeaccount);
-
-        // anchor_spl::token::close_account(cpi_ctx_close_account);
-
         Ok(())
     }
 
@@ -61,25 +38,6 @@ pub mod customshop {
       pub fn burn_marker_only(_ctx: Context<BurnMarker>) -> Result<()> {
         // let marker = &mut ctx.accounts.marker;
         msg!("burning token");
-
-        //  if( ctx.accounts.marker.mint.to_account_info() != null) {
-        
-        //  }
-
-       
-        // let cpi_accounts_closeaccount = CloseAccount {
-        //     account: ctx.accounts.marker.to_account_info(),
-        //     destination: ctx.accounts.authority.to_account_info(), /// if called by owner, owner gets the proceeds
-        //     authority: ctx.accounts.authority.to_account_info(),
-        // };
-
-        // let cpi_program = ctx.accounts.token_program.to_account_info();
-
-        
-        // let cpi_ctx_close_account = CpiContext::new(cpi_program, cpi_accounts_closeaccount);
-
-        // anchor_spl::token::close_account(cpi_ctx_close_account);
-        
 
         Ok(())
     }
@@ -123,35 +81,6 @@ pub struct CreateMarker<'info> {
 
     system_program: Program<'info, System>,
 }
-
-
-
-// // validation struct for create marker
-// #[derive(Accounts)]
-// #[instruction(domain: String)]
-// pub struct UpdateOwner<'info> {
-//     #[account(mut)]
-//     owner: Signer<'info>,
-
-//     authority: Signer<'info>,
-
-//     #[account(
-//         mut, 
-//         has_one = authority,
-//         seeds = [
-//         b"marker", 
-//         domain.as_bytes()
-//         ], bump)]
-//     marker: Account<'info, Marker>,
-
-//     #[account(
-//         mut, 
-//         constraint = token_account.owner == owner.key(),
-//         constraint = token_account.mint == marker.mint,
-//         constraint = token_account.amount > 0
-//        )]
-//     token_account: Account<'info, TokenAccount>,
-// }
 
 // validation struct for burning when mint exists - can be called by owner only
 #[derive(Accounts)]
